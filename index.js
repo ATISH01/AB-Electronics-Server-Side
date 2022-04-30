@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { send } = require('express/lib/response');
 require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -16,12 +17,38 @@ async function run(){
     try{
         await client.connect();
         const itemsCollection = client.db('Electronics').collection('allItems')
+        // get All Items
         app.get('/allItems',async(req,res)=>{
             const query ={};
             const cursor = itemsCollection.find(query);
             const items = await cursor.toArray();
             res.send(items)
         })
+        //get single Item
+        app.get('/allItems/:id',async(req,res)=>{
+            const id = req.params.id;
+            const query = {_id:ObjectId(id)};
+            const singleItem = await itemsCollection.findOne(query);
+            res.send(singleItem)
+        })
+        //update
+        app.put('/allItems/:id', async(req, res) =>{
+            const id = req.params.id;
+            const updatedUser = req.body;
+            const filter = {_id: ObjectId(id)};
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    quentity: updatedUser.quentity
+                }
+            };
+            const result = await itemsCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+
+        })
+
+       
+
     }
     finally{}
 }
