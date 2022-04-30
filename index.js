@@ -54,6 +54,10 @@ async function run(){
             const result = await itemsCollection.deleteOne(query);
             res.send(result)
         })
+        //Add new Items
+        app.post('/allItems',async(req,res)=>{
+            
+        })
 
     }
     finally{}
