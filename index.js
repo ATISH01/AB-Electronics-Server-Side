@@ -4,10 +4,29 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const { send } = require('express/lib/response');
 require('dotenv').config();
 const app = express();
+const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+//JWT Verification
+/* function JWTVerification(req,res,next){
+    const authHeaders=req.headers.authorize;
+    if(!authHeaders){
+        return res.status(401).send({message: "Access not valid"})
+    }
+    const token=authHeaders.split(' ')[1];
+    jwt.verify(token,process.env.ACCESS_TOKEN_SECRET,(err,decoded)=>{
+        if(err){
+            return res.status(403).send({message: "Access not valid"});
+        }
+        console.log('decoded',decoded);
+        req.decoded=decoded;
+    })
+    
+    next();
+} */
 
 
 
@@ -61,13 +80,22 @@ async function run(){
             res.send(result);
         })
         // get user matched Items
-        app.get('/order',async(req,res)=>{
+        app.get('/myItems',async(req,res)=>{
+            
             const email = req.query.email;
             console.log(email);
             const query = {email};
             const cursor = itemsCollection.find(query);
             const result = await cursor.toArray();
             res.send(result);
+        })
+        // AUTH
+        app.post('/login', async (req, res) => {
+            const user = req.body;
+            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '15d'
+            });
+            res.send({ accessToken });
         })
 
     }
